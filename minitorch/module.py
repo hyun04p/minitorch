@@ -52,12 +52,19 @@ class Module:
             The name and `Parameter` of each ancestor parameter.
         """
         # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        return self._named_parameters()
+        # named_params = list(self.__dict__["_parameters"].items())
+        # for module in self.modules():
+        #     named_params = named_params + list(module.named_parameters())
+        # return named_params
 
     def parameters(self) -> Sequence[Parameter]:
         "Enumerate over all the parameters of this module and its descendents."
         # TODO: Implement for Task 0.4.
-        raise NotImplementedError('Need to implement for Task 0.4')
+        params = list(self.__dict__["_parameters"].values())
+        for module in self.modules():
+            params = params + (list(module.parameters()))
+        return params
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """
@@ -73,6 +80,17 @@ class Module:
         val = Parameter(v, k)
         self.__dict__["_parameters"][k] = val
         return val
+
+    def _named_parameters(self, prefix: str = ""):
+        named_params = []
+        for name, param in self.__dict__["_parameters"].items():
+            full_name = name if prefix == "" else f"{prefix}.{name}"
+            named_params.append((full_name, param))
+
+        for name, module in self.__dict__["_modules"].items():
+            next_prefix = name if prefix == "" else f"{prefix}.{name}"
+            named_params = named_params + list(module._named_parameters(prefix=next_prefix))
+        return named_params
 
     def __setattr__(self, key: str, val: Parameter) -> None:
         if isinstance(val, Parameter):
